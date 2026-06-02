@@ -11,10 +11,16 @@ const app = express();
 // Log the CORS origin for debugging purposes
 // console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
 
-// console.log("Cors origin:",process.env.CORS_ORIGIN);
-// Configuring CORS
+// Configuring CORS with multiple origins for dev and production
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()) || ['http://localhost:5173'];
 app.use(cors({
-    origin: process.env.CORS_ORIGIN , // Fallback in case CORS_ORIGIN is not set
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true, // Allow cookies and other credentials
 }));
 
