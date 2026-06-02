@@ -13,11 +13,13 @@ export class UserAPIs {
             formData.append('password', userData.password);
             formData.append('reEnteredPassword', userData.reEnteredPassword);
 
-            if (userData.avatar[0]) {
-                formData.append('avatar', userData.avatar[0]);
+            const avatarFile = userData.avatar?.[0] || userData.avatar;
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
             }
-            if (userData.coverImage[0]) {
-                formData.append('coverImage', userData.coverImage[0]);
+            const coverFile = userData.coverImage?.[0] || userData.coverImage;
+            if (coverFile) {
+                formData.append('coverImage', coverFile);
             }
 
             // API call using axios

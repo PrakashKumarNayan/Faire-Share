@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import userAPI from "../APIcalls/UserAPIs";
@@ -11,7 +11,13 @@ function SignupPage2() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { register, handleSubmit, setValue, watch } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -20,6 +26,12 @@ function SignupPage2() {
 
   const coverInputRef = useRef(null);
   const profileInputRef = useRef(null);
+
+  useEffect(() => {
+    register("coverImage");
+  }, [register]);
+
+  const avatarRegister = register("avatar");
 
   const handleCoverClick = () => {
     coverInputRef.current?.click();
@@ -39,11 +51,11 @@ function SignupPage2() {
         dispatch(login(currentUser.data));
         navigate("/chats");
       }
-      setLoading(false);
     } catch (error) {
-      setLoading(false);
       setError(true);
-      setErrorMessage(error.response?.data?.message || "Signup failed");
+      setErrorMessage(error.response?.data?.message || error.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,10 +100,9 @@ function SignupPage2() {
           type="file"
           id="coverImage"
           accept="image/*"
-          {...register("coverImage", { required: true })}
           className="hidden"
           ref={coverInputRef}
-          onChange={(e) => setValue("coverImage", e.target.files)}
+          onChange={(e) => setValue("coverImage", e.target.files, { shouldValidate: true })}
         />
       </div>
 
@@ -116,10 +127,16 @@ function SignupPage2() {
           type="file"
           id="avatar"
           accept="image/*"
-          {...register("avatar", { required: true })}
           className="hidden"
-          ref={profileInputRef}
-          onChange={(e) => setValue("avatar", e.target.files)}
+          {...avatarRegister}
+          ref={(e) => {
+            profileInputRef.current = e;
+            avatarRegister.ref(e);
+          }}
+          onChange={(e) => {
+            avatarRegister.onChange?.(e);
+            setValue("avatar", e.target.files, { shouldValidate: true });
+          }}
         />
       </div>
 
@@ -154,6 +171,11 @@ function SignupPage2() {
             </div>
           ))}
 
+          {errors.avatar && (
+            <div className="text-center pt-3 text-red-400">
+              {errors.avatar.message}
+            </div>
+          )}
           {error && (
             <h1 className="text-center pt-3 text-red-400">{errorMessage}</h1>
           )}
